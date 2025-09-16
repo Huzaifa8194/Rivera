@@ -3,7 +3,8 @@
 // Firebase client initialization (web)
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
-import { initializeFirestore } from "firebase/firestore"
+// Use Firestore Lite to avoid WebChannel/streaming transports that can 400 in some networks
+import { getFirestore as getFirestoreLite } from "firebase/firestore/lite"
 import { getStorage } from "firebase/storage"
 import { getAnalytics, isSupported } from "firebase/analytics"
 
@@ -23,11 +24,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
 // Core services
 export const auth = getAuth(app)
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false,
-  ignoreUndefinedProperties: true,
-})
+export const db = getFirestoreLite(app)
 export const storage = getStorage(app)
 
 // Analytics only in browser and when supported
