@@ -5,7 +5,7 @@ import StickyNavbar from '../components/StickyNavbar'
 import Footer from '../components/Footer'
 import { auth, db, storage } from '../lib/firebaseClient'
 import { onAuthStateChanged, updateProfile } from 'firebase/auth'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore/lite'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 export default function MyAccountPage() {

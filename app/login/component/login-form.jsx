@@ -5,7 +5,7 @@ import { Box, Container, TextField, Button, Typography, InputAdornment, IconButt
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { auth, db } from '../../lib/firebaseClient'
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore/lite'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false)
