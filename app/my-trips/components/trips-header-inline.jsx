@@ -6,7 +6,7 @@ import { useState } from "react"
 
 export function TripsHeaderInline() {
   const [tabIndex, setTabIndex] = useState(0)
-  const brand = '#00223A'
+  const brand = '#002640'
 
   return (
     <Box sx={{ mb: 2 }}>

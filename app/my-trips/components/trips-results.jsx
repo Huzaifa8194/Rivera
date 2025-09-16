@@ -11,17 +11,17 @@ function TripCard() {
     <Card component={Link} href="/my-trips/1" sx={{ overflow: 'hidden', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
         <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative' }}>
-          <img src="/home/home-landing.jpg" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/home/home-landing.jpg" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
         </Box>
 
         <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#002640' }}>
                 Turquoise Resort Chogogo Dive & Beach Curacao
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Turkey &gt; Turkes Reviera &gt; Side • <u>View on Map</u>
+              <Typography variant="caption" sx={{ color: '#495560' }}>
+                Turkey &gt; Turkes Reviera &gt; Side • <span style={{ textDecoration: 'underline', color: '#003a64' }}>View on Map</span>
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -34,7 +34,7 @@ function TripCard() {
 
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', mt: 1.5, gap: 2 }}>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ bgcolor: '#0f172a', color: 'white', p: 2, borderRadius: 1 }}>
+              <Box sx={{ bgcolor: '#003a64', color: 'white', p: 2, borderRadius: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2">Thu Aug 28, 2025</Typography>
