@@ -1,4 +1,6 @@
-import { Button, Box, AppBar, Toolbar, Typography, Container, Badge } from "@mui/material"
+import { Button, Box, AppBar, Toolbar, Typography, Container, Badge, IconButton } from "@mui/material"
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined"
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined"
 import UserMenu from "./UserMenu"
 
 export default function Header() {
@@ -99,40 +101,16 @@ export default function Header() {
 
           {/* Action Icons and Button - Far Right */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, pr: 3 }}>
-            {/* Flag icon */}
-            <Box 
-              sx={{ 
-                width: 24, 
-                height: 24, 
-                bgcolor: '#000000', 
-                borderRadius: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#333333' }
-              }}
-            >
-              <span style={{ color: 'white', fontSize: '14px' }}>🏁</span>
-            </Box>
-            
+            {/* Locale/flag */}
+            <IconButton size="small" sx={{ bgcolor: '#000000', color: 'white', '&:hover': { bgcolor: '#333333' } }}>
+              <FlagOutlinedIcon fontSize="small" />
+            </IconButton>
+
             {/* Shopping cart with badge */}
             <Badge badgeContent={1} color="error">
-              <Box 
-                sx={{ 
-                  width: 24, 
-                  height: 24, 
-                  bgcolor: '#000000', 
-                  borderRadius: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  '&:hover': { bgcolor: '#333333' }
-                }}
-              >
-                <span style={{ color: 'white', fontSize: '14px' }}>🛒</span>
-              </Box>
+              <IconButton size="small" sx={{ bgcolor: '#000000', color: 'white', '&:hover': { bgcolor: '#333333' } }}>
+                <ShoppingCartOutlinedIcon fontSize="small" />
+              </IconButton>
             </Badge>
             <UserMenu />
             
