@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { Button, Box, AppBar, Toolbar, Typography, Badge, IconButton, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider } from "@mui/material"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
