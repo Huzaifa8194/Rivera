@@ -106,7 +106,7 @@ export function SearchResults() {
               {/* Image */}
               <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative', overflow: 'hidden' }}>
                 <img
-                  src={resort.image || "/home/home-landing.jpg"}
+                  src="/home/home-landing.jpg"
                   alt={resort.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }}
                 />
