@@ -112,7 +112,7 @@ export default function StickyNavbar() {
                 <ShoppingCartOutlinedIcon fontSize="small" />
               </IconButton>
             </Badge>
-            <UserMenu />
+            <UserMenu loginButtonColor="#1e293b" />
             
             {/* Book with Us button */}
             <Button 

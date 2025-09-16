@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Box, Avatar, Menu, MenuItem, IconButton, ListItemIcon, Tooltip, Divider } from "@mui/material"
+import { Box, Avatar, Menu, MenuItem, IconButton, ListItemIcon, Tooltip, Divider, Button } from "@mui/material"
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"
 import LogoutIcon from "@mui/icons-material/Logout"
 import LoginIcon from "@mui/icons-material/Login"
@@ -12,7 +12,7 @@ import Link from "next/link"
 import { auth } from "../lib/firebaseClient"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 
-export default function UserMenu() {
+export default function UserMenu({ loginButtonColor = '#1e293b' }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const open = Boolean(anchorEl)
@@ -39,17 +39,39 @@ export default function UserMenu() {
     }
   }
 
+  if (!currentUser) {
+    return (
+      <Button 
+        component={Link}
+        href="/login"
+        variant="outlined"
+        sx={{
+          borderColor: loginButtonColor,
+          color: loginButtonColor,
+          bgcolor: 'white',
+          px: 3,
+          py: 1,
+          borderRadius: 1,
+          fontWeight: 500,
+          textTransform: 'none',
+          '&:hover': {
+            bgcolor: '#f8fafc',
+            borderColor: loginButtonColor
+          }
+        }}
+      >
+        Login
+      </Button>
+    )
+  }
+
   return (
     <Box>
-      <Tooltip title={currentUser ? currentUser.email : "Account"}>
+      <Tooltip title={currentUser.email}>
         <IconButton onClick={handleOpen} size="small" sx={{ ml: 1 }} aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}>
-          {currentUser ? (
-            <Avatar src={avatarSrc || undefined} sx={{ width: 32, height: 32 }}>
-              {avatarSrc ? null : avatarLabel}
-            </Avatar>
-          ) : (
-            <AccountCircleIcon sx={{ color: 'currentColor' }} />
-          )}
+          <Avatar src={avatarSrc || undefined} sx={{ width: 32, height: 32 }}>
+            {avatarSrc ? null : avatarLabel}
+          </Avatar>
         </IconButton>
       </Tooltip>
       <Menu

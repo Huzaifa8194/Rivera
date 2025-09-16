@@ -112,7 +112,7 @@ export default function Header() {
                 <ShoppingCartOutlinedIcon fontSize="small" />
               </IconButton>
             </Badge>
-            <UserMenu />
+            <UserMenu loginButtonColor="#000000" />
             
             {/* Book with Us button */}
             <Button 
