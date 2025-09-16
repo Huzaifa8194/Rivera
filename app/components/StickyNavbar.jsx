@@ -1,6 +1,5 @@
 import { Button, Box, AppBar, Toolbar, Typography, Container, Badge } from "@mui/material"
-import dynamic from "next/dynamic"
-const UserMenu = dynamic(() => import("./UserMenu"), { ssr: false })
+import UserMenu from "./UserMenu"
 
 export default function StickyNavbar() {
   return (
