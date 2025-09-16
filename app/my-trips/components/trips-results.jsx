@@ -1,16 +1,17 @@
 "use client"
 
 import { Box, Card, Typography, Button, Chip } from "@mui/material"
+import Link from "next/link"
 import { Heart, Bed, Plane } from "lucide-react"
 
 const items = [1,2,3,4]
 
 function TripCard() {
   return (
-    <Card sx={{ overflow: 'hidden' }}>
+    <Card component={Link} href="/my-trips/1" sx={{ overflow: 'hidden', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
         <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative' }}>
-          <img src="/tropical-mountain-ocean-resort.png" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/home/home-landing.jpg" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </Box>
 
         <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>

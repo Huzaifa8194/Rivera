@@ -10,6 +10,7 @@ import {
   FormControl,
   InputLabel
 } from "@mui/material"
+import Link from "next/link"
 import { Heart, Bed, Plane } from "lucide-react"
 
 const resorts = [
@@ -100,12 +101,12 @@ export function SearchResults() {
       {/* Results List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {resorts.map((resort) => (
-          <Card key={resort.id} sx={{ overflow: 'hidden' }}>
+          <Card key={resort.id} component={Link} href={`/vacations/1`} sx={{ overflow: 'hidden', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
               {/* Image */}
               <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative' }}>
                 <img
-                  src={resort.image || "/placeholder.svg"}
+                  src={resort.image || "/home/home-landing.jpg"}
                   alt={resort.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />

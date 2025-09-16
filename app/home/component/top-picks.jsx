@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
 import { useState, useRef } from "react"
+import Link from "next/link"
 
 export default function TopPicks() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -156,6 +157,8 @@ export default function TopPicks() {
           >
             {picks.map((pick) => (
               <Card
+                component={Link}
+                href="/vacations/1"
                 key={pick.id}
                 sx={{
                   minWidth: { xs: 280, md: 320 },
@@ -164,14 +167,17 @@ export default function TopPicks() {
                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                   overflow: 'hidden',
                   bgcolor: 'white',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer'
                 }}
               >
                 <CardMedia
                   component="div"
                   sx={{
                     height: 200,
-                    backgroundImage: `url('/autumn-mountain-landscape.png')`,
+                    backgroundImage: `url('/home/home-landing.jpg')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     borderRadius: '8px 8px 0 0'
