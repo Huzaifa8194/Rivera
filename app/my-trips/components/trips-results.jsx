@@ -10,8 +10,8 @@ function TripCard() {
   return (
     <Card component={Link} href="/my-trips/1" sx={{ overflow: 'hidden', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-        <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative' }}>
-          <img src="/home/home-landing.jpg" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center' }} />
+        <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative', overflow: 'hidden' }}>
+          <img src="/home/home-landing.jpg" alt="trip" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }} />
         </Box>
 
         <Box sx={{ flex: 1, p: { xs: 2, md: 3 } }}>
@@ -61,10 +61,10 @@ function TripCard() {
             </Box>
 
             <Box sx={{ textAlign: { xs: 'left', lg: 'right' }, minWidth: 128 }}>
-              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#002640' }}>
                 €349
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>per person</Typography>
+              <Typography variant="caption" sx={{ color: '#6B7280' }}>per person</Typography>
             </Box>
           </Box>
         </Box>
