@@ -113,13 +113,15 @@ export default function RegisterComponent() {
           display: 'flex',
           alignItems: 'center',
           minHeight: '100vh',
-          py: 4
+          py: { xs: 2, md: 4 }
         }}
       >
         <Box 
           sx={{ 
             position: 'relative',
             display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2, md: 0 },
             width: '100%', 
             maxWidth: '1400px',
             mx: 'auto',
@@ -137,21 +139,28 @@ export default function RegisterComponent() {
               position: 'relative',
               zIndex: 2,
               flex: 1,
-              p: { xs: 4, md: 8 },
+              p: { xs: 3, md: 8 },
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              alignItems: { xs: 'center', md: 'flex-start' },
+              textAlign: { xs: 'center', md: 'left' },
+              backgroundColor: { xs: 'rgba(0,0,0,0.35)', md: 'transparent' },
+              backdropFilter: { xs: 'blur(2px)', md: 'none' }
             }}
           >
             {/* Logo */}
-            <Box sx={{ mb: 6 }}>
-              <img 
-                src="/logo-black.png" 
-                alt="Reviera Travel" 
-                style={{ 
-                  height: '120px', 
-                  width: 'auto'
-                }} 
+            <Box sx={{ mb: { xs: 2, md: 6 } }}>
+              <Box
+                component="img"
+                src="/logo-black.png"
+                alt="Reviera Travel"
+                sx={{
+                  height: { xs: 70, md: 120 },
+                  width: 'auto',
+                  display: 'block',
+                  mx: { xs: 'auto', md: 0 }
+                }}
               />
             </Box>
 
@@ -207,19 +216,21 @@ export default function RegisterComponent() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              p: { xs: 4, md: 6, lg: 8 }
+              width: '100%',
+              p: { xs: 3, md: 6, lg: 8 }
             }}
           >
             <Box 
               sx={{ 
                 width: '100%',
-                maxWidth: 480,
+                maxWidth: { xs: '100%', sm: 420, md: 480 },
                 background: 'rgba(0,0,0,0.55)',
                 border: '1px solid rgba(255,255,255,0.10)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.45)',
                 backdropFilter: 'blur(8px) saturate(110%)',
                 borderRadius: 4,
-                p: 3,
+                p: { xs: 2, md: 3 },
+                mx: { xs: 'auto', md: 0 }
               }}
             >
               <form onSubmit={handleSubmit}>
