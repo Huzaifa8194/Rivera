@@ -79,15 +79,15 @@ export function SearchResults() {
         mb: 3 
       }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 500 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#002640' }}>
             Showing Results for: Paris, France
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" sx={{ color: '#495560' }}>
             5 results found
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2">Sort By:</Typography>
+          <Typography variant="body2" sx={{ color: '#495560' }}>Sort By:</Typography>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select defaultValue="lowest-price" sx={{ height: 40 }}>
               <MenuItem value="lowest-price">Lowest Price</MenuItem>
@@ -104,11 +104,11 @@ export function SearchResults() {
           <Card key={resort.id} component={Link} href={`/vacations/1`} sx={{ overflow: 'hidden', textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
               {/* Image */}
-              <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative' }}>
+              <Box sx={{ width: { xs: '100%', md: 288 }, height: 192, position: 'relative', overflow: 'hidden' }}>
                 <img
                   src={resort.image || "/home/home-landing.jpg"}
                   alt={resort.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }}
                 />
               </Box>
 
@@ -123,7 +123,7 @@ export function SearchResults() {
                 }}>
                   <Box sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#002640' }}>
                         {resort.name}
                       </Typography>
                       <Button variant="text" size="small" sx={{ p: 0.5, minWidth: 'auto' }}>
@@ -131,7 +131,7 @@ export function SearchResults() {
                       </Button>
                     </Box>
 
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#495560', mb: 2 }}>
                       {resort.location}
                     </Typography>
 
@@ -148,7 +148,7 @@ export function SearchResults() {
 
                     {/* Booking Details */}
                     <Box sx={{ 
-                      bgcolor: '#1e293b', 
+                      bgcolor: '#003a64', 
                       color: 'white', 
                       p: { xs: 2, md: 2.5 }, 
                       borderRadius: 1 
@@ -187,10 +187,10 @@ export function SearchResults() {
                     textAlign: { xs: 'center', lg: 'right' }, 
                     ml: { lg: 3 } 
                   }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#002640' }}>
                       €{resort.price}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="body2" sx={{ color: '#6B7280' }}>
                       per person
                     </Typography>
                   </Box>
