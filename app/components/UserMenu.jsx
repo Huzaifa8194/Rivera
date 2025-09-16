@@ -7,6 +7,7 @@ import LogoutIcon from "@mui/icons-material/Logout"
 import LoginIcon from "@mui/icons-material/Login"
 import PersonIcon from "@mui/icons-material/Person"
 import AppRegistrationIcon from "@mui/icons-material/AppRegistration"
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff"
 import Link from "next/link"
 import { auth } from "../lib/firebaseClient"
 import { onAuthStateChanged, signOut } from "firebase/auth"
@@ -67,6 +68,12 @@ export default function UserMenu() {
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               My account
+            </MenuItem>
+            <MenuItem component={Link} href="/my-trips">
+              <ListItemIcon>
+                <FlightTakeoffIcon fontSize="small" />
+              </ListItemIcon>
+              My Trips
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
