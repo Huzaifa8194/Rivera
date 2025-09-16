@@ -13,12 +13,12 @@ const firebaseConfig = {
   apiKey: "AIzaSyDORHrv8iNtxWagJKNsG9Zw3fRrd4exxlo",
   authDomain: "reviera-travel.firebaseapp.com",
   projectId: "reviera-travel",
-  // Use the bucket name (not the download domain)
-  storageBucket: "reviera-travel.appspot.com",
+  storageBucket: "reviera-travel.firebasestorage.app",
   messagingSenderId: "920234647316",
   appId: "1:920234647316:web:03fb65c13180945cd96c01",
-  measurementId: "G-GCXVP2KSRL",
-}
+  measurementId: "G-GCXVP2KSRL"
+};
+
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
