@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { Box, Container, TextField, Button, Typography, InputAdornment, IconButton } from '@mui/material'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { auth, db } from '../../lib/firebaseClient'
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false)
@@ -20,15 +23,36 @@ export default function LoginComponent() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log('Login data:', formData)
+    try {
+      await signInWithEmailAndPassword(auth, formData.email, formData.password)
+      window.location.href = '/my-account'
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Login failed')
+    }
   }
 
-  const handleGoogleSignIn = () => {
-    // Handle Google sign in
-    console.log('Google sign in clicked')
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      const credential = await signInWithPopup(auth, provider)
+      const user = credential.user
+      // Upsert users doc to ensure exists
+      const userDoc = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        updatedAt: serverTimestamp(),
+      }
+      await setDoc(doc(db, 'users', user.uid), userDoc, { merge: true })
+      window.location.href = '/my-account'
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Google sign in failed')
+    }
   }
 
   return (

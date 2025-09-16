@@ -1,4 +1,6 @@
 import { Button, Box, AppBar, Toolbar, Typography, Container, Badge } from "@mui/material"
+import dynamic from "next/dynamic"
+const UserMenu = dynamic(() => import("./UserMenu"), { ssr: false })
 
 export default function StickyNavbar() {
   return (
@@ -133,6 +135,7 @@ export default function StickyNavbar() {
                 <span style={{ color: 'white', fontSize: '14px' }}>🛒</span>
               </Box>
             </Badge>
+            <UserMenu />
             
             {/* Book with Us button */}
             <Button 

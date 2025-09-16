@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { Box, Container, TextField, Button, Typography, InputAdornment, IconButton } from '@mui/material'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { auth, db } from '../../lib/firebaseClient'
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 export default function RegisterComponent() {
   const [showPassword, setShowPassword] = useState(false)
@@ -25,15 +28,60 @@ export default function RegisterComponent() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle registration logic here
-    console.log('Registration data:', formData)
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match')
+      return
+    }
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
+      const user = credential.user
+      // Ensure displayName exists (optional)
+      if (!user.displayName) {
+        await updateProfile(user, { displayName: formData.email.split('@')[0] })
+      }
+      // Create users document with ALL submitted fields
+      const userDoc = {
+        uid: user.uid,
+        email: formData.email,
+        affiliateLink: formData.affiliateLink || '',
+        bookingId: formData.bookingId || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }
+      await setDoc(doc(db, 'users', user.uid), userDoc, { merge: true })
+      window.location.href = '/my-account'
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Registration failed')
+    }
   }
 
-  const handleGoogleSignUp = () => {
-    // Handle Google sign up
-    console.log('Google sign up clicked')
+  const handleGoogleSignUp = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      const credential = await signInWithPopup(auth, provider)
+      const user = credential.user
+      // Create users document (Google provides email, displayName, photoURL)
+      const userDoc = {
+        uid: user.uid,
+        email: user.email || '',
+        affiliateLink: formData.affiliateLink || '',
+        bookingId: formData.bookingId || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }
+      await setDoc(doc(db, 'users', user.uid), userDoc, { merge: true })
+      window.location.href = '/my-account'
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Google sign up failed')
+    }
   }
 
   return (
