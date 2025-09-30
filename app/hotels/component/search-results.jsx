@@ -24,8 +24,8 @@ export function SearchResults() {
   // Use the docs' exact SERP by hotel IDs structure for sandbox reliability
   const requestBody = useMemo(() => ({
     mode: "region",
-    checkin: "2025-10-22",
-    checkout: "2025-10-25",
+    checkin: "2025-10-01",
+    checkout: "2025-10-07",
     residency: "GB",
     language: "en",
     guests: [

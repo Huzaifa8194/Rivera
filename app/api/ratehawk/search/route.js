@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchSerpRegion, searchSerpHotels, searchSerpGeo } from "../client";
+import { searchSerpRegion, searchSerpHotels, searchSerpGeo, searchMulticomplete } from "../client";
 
 export async function POST(request) {
   try {
@@ -17,6 +17,7 @@ export async function POST(request) {
       ids = undefined, // [String]
       hids = undefined, // [Int]
       region_id = undefined, // Int
+      region_query = undefined, // String, e.g. "London"
       longitude = undefined, // Number
       latitude = undefined, // Number
       radius = undefined, // Number (km)
@@ -37,10 +38,24 @@ export async function POST(request) {
       console.log("[API] SERP hotels payload:", payload);
       serpData = await searchSerpHotels(payload);
     } else if (mode === "region") {
-      if (!region_id) {
-        return NextResponse.json({ error: "region_id required for region mode" }, { status: 400 });
+      let resolvedRegionId = region_id;
+      // Resolve region by name if region_id not supplied
+      if (!resolvedRegionId && region_query) {
+        const query = String(region_query).trim();
+        console.log("[API] Resolving region via multicomplete:", { query, language });
+        const suggest = await searchMulticomplete({ query, language, limit: 10 });
+        const preferredIso = String(residency || "").toUpperCase();
+        // Try to match region country with residency ISO2 if present
+        const regions = Array.isArray(suggest?.regions) ? suggest.regions : [];
+        let candidate = regions.find(r => (r?.country_iso2 || r?.country_code || r?.country)?.toString().toUpperCase() === preferredIso);
+        if (!candidate) candidate = regions[0];
+        resolvedRegionId = candidate?.id || candidate?.region_id || candidate?.regionId;
+        console.log("[API] Resolved region:", { resolvedRegionId, candidate });
       }
-      const payload = { checkin, checkout, residency, language, guests, currency, region_id };
+      if (!resolvedRegionId) {
+        return NextResponse.json({ error: "region_id required or resolvable via region_query" }, { status: 400 });
+      }
+      const payload = { checkin, checkout, residency, language, guests, currency, region_id: resolvedRegionId };
       console.log("[API] SERP region payload:", payload);
       serpData = await searchSerpRegion(payload);
     } else if (mode === "geo") {
