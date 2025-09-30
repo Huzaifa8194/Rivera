@@ -67,7 +67,7 @@ export async function POST(request) {
     }));
 
     const meta = {
-      page: serpData?.page || page,
+      page: serpData?.page || 1,
       total: serpData?.total || results.length,
     };
 
