@@ -69,10 +69,18 @@ export async function POST(request) {
       return NextResponse.json({ error: "invalid mode" }, { status: 400 });
     }
 
-    // Normalize a minimal response for UI
-    const items = Array.isArray(serpData) ? serpData : (serpData?.results || serpData?.hotels || []);
+    // Normalize a minimal response for UI (handle ETG 'data' wrapper)
+    const items = Array.isArray(serpData)
+      ? serpData
+      : (
+          serpData?.results ||
+          serpData?.hotels ||
+          serpData?.data?.results ||
+          serpData?.data?.hotels ||
+          []
+        );
     const results = items.map((h) => ({
-      id: h.id || h.hotel_id || h.hotelId,
+      id: h.id || h.hid || h.hotel_id || h.hotelId,
       name: h.name || h.hotel_name || h.title,
       rating: h.rating || h.stars || h.score || null,
       price: h.price?.amount || h.min_price || h.price || null,
@@ -82,8 +90,8 @@ export async function POST(request) {
     }));
 
     const meta = {
-      page: serpData?.page || 1,
-      total: serpData?.total || results.length,
+      page: serpData?.page || serpData?.data?.page || 1,
+      total: serpData?.total || serpData?.data?.total_hotels || results.length,
     };
 
     console.log(`[API] Returning ${results.length} results`);
