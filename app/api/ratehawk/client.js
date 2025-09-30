@@ -18,6 +18,10 @@ export async function rhFetch(endpoint, options = {}) {
   }
 
   const url = new URL(endpoint.replace(/^\//, ""), baseUrl).toString();
+  try {
+    const parsed = new URL(url);
+    console.log("[Ratehawk] Using base host:", parsed.origin);
+  } catch (_) {}
   const method = (options.method || "POST").toUpperCase();
 
   const headers = {
@@ -86,6 +90,7 @@ export async function rhFetch(endpoint, options = {}) {
         const err = new Error(`Ratehawk error ${res.status}`);
         err.status = res.status;
         err.data = data;
+        err.url = url;
         throw err;
       }
 
@@ -93,7 +98,10 @@ export async function rhFetch(endpoint, options = {}) {
     } catch (err) {
       if (err.name === "AbortError") {
         console.error("[Ratehawk] Request timed out");
-        throw new Error("Ratehawk request timed out");
+        const e = new Error("Ratehawk request timed out");
+        e.kind = "timeout";
+        e.url = url;
+        throw e;
       }
       if (attempt < (options.retries ?? 2)) {
         const backoff = (options.backoffBaseMs ?? 600) * attempt;
@@ -102,7 +110,10 @@ export async function rhFetch(endpoint, options = {}) {
         return attemptFetch(attempt + 1);
       }
       console.error("[Ratehawk] Request failed:", err);
-      throw err;
+      const e = new Error(err?.message || "Ratehawk fetch failed");
+      e.kind = err?.kind || "network";
+      e.url = url;
+      throw e;
     }
   };
 

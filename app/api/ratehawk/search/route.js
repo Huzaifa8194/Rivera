@@ -76,7 +76,13 @@ export async function POST(request) {
   } catch (err) {
     console.error("[API] /api/ratehawk/search error:", err);
     const status = err?.status || 500;
-    return NextResponse.json({ error: err?.message || "Unexpected error", details: err?.data }, { status });
+    return NextResponse.json({ 
+      error: err?.message || "Unexpected error", 
+      details: err?.data, 
+      kind: err?.kind,
+      url: err?.url,
+      envHost: process.env.RATEHAWK_BASE_URL || process.env.RATEHAWK_API_URL || null
+    }, { status });
   }
 }
 
