@@ -1,0 +1,128 @@
+// Centralized Ratehawk/ETG API client with verbose logging and basic retry
+// Uses environment variables:
+// - RATEHAWK_BASE_URL (e.g., https://sandbox-api.emergingtravel.com/)
+// - RATEHAWK_API_KEY (token or api key)
+// - RATEHAWK_PARTNER_ID (optional)
+
+const DEFAULT_TIMEOUT_MS = 20000;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function rhFetch(endpoint, options = {}) {
+  const baseUrl = process.env.RATEHAWK_BASE_URL || process.env.RATEHAWK_API_URL || "";
+  if (!baseUrl) {
+    console.error("[Ratehawk] Missing RATEHAWK_BASE_URL env");
+    throw new Error("Server misconfiguration: RATEHAWK_BASE_URL missing");
+  }
+
+  const url = new URL(endpoint.replace(/^\//, ""), baseUrl).toString();
+  const method = (options.method || "POST").toUpperCase();
+
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(options.headers || {}),
+  };
+
+  // Add multiple auth header variants to maximize sandbox compatibility
+  if (process.env.RATEHAWK_API_KEY) {
+    headers["Authorization"] = headers["Authorization"] || `Bearer ${process.env.RATEHAWK_API_KEY}`;
+    headers["Api-Key"] = headers["Api-Key"] || process.env.RATEHAWK_API_KEY;
+    headers["X-API-Key"] = headers["X-API-Key"] || process.env.RATEHAWK_API_KEY;
+  }
+  if (process.env.RATEHAWK_PARTNER_ID) {
+    headers["X-Partner-Id"] = process.env.RATEHAWK_PARTNER_ID;
+  }
+
+  const body = options.body ? (typeof options.body === "string" ? options.body : JSON.stringify(options.body)) : undefined;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || DEFAULT_TIMEOUT_MS);
+
+  const attemptFetch = async (attempt) => {
+    const startedAt = Date.now();
+    console.log(`[Ratehawk] >>> ${method} ${url} (attempt ${attempt})`);
+    if (body) {
+      try {
+        console.log("[Ratehawk] Request body:", typeof body === "string" ? JSON.parse(body) : body);
+      } catch (_) {
+        console.log("[Ratehawk] Request body (raw string)");
+      }
+    }
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body,
+        signal: controller.signal,
+        // do not cache sandbox calls
+        cache: "no-store",
+      });
+
+      const elapsed = Date.now() - startedAt;
+      const contentType = res.headers.get("content-type") || "";
+
+      let data;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        data = await res.text();
+      }
+
+      console.log(`[Ratehawk] <<< ${res.status} in ${elapsed}ms from ${url}`);
+
+      if (!res.ok) {
+        // Retry on 429/5xx
+        if ((res.status === 429 || res.status >= 500) && attempt < (options.retries ?? 2)) {
+          const backoff = (options.backoffBaseMs ?? 600) * attempt;
+          console.warn(`[Ratehawk] Status ${res.status}, retrying after ${backoff}ms`);
+          await sleep(backoff);
+          return attemptFetch(attempt + 1);
+        }
+        console.error("[Ratehawk] Error response:", data);
+        const err = new Error(`Ratehawk error ${res.status}`);
+        err.status = res.status;
+        err.data = data;
+        throw err;
+      }
+
+      return data;
+    } catch (err) {
+      if (err.name === "AbortError") {
+        console.error("[Ratehawk] Request timed out");
+        throw new Error("Ratehawk request timed out");
+      }
+      if (attempt < (options.retries ?? 2)) {
+        const backoff = (options.backoffBaseMs ?? 600) * attempt;
+        console.warn(`[Ratehawk] Network error, retrying after ${backoff}ms`, err);
+        await sleep(backoff);
+        return attemptFetch(attempt + 1);
+      }
+      console.error("[Ratehawk] Request failed:", err);
+      throw err;
+    }
+  };
+
+  try {
+    return await attemptFetch(1);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function searchMulticomplete(payload) {
+  return rhFetch("/api/b2b/v3/search/multicomplete/", { method: "POST", body: payload });
+}
+
+export async function searchSerpRegion(payload) {
+  return rhFetch("/api/b2b/v3/search/serp/region/", { method: "POST", body: payload });
+}
+
+export async function searchSerpHotels(payload) {
+  return rhFetch("/api/b2b/v3/search/serp/hotels/", { method: "POST", body: payload });
+}
+
+
