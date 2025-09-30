@@ -26,17 +26,12 @@ export function SearchResults() {
     mode: "hotels",
     checkin: "2025-10-22",
     checkout: "2025-10-25",
-    residency: "gb",
+    residency: "GB",
     language: "en",
     guests: [
       { adults: 2, children: [] }
     ],
-    // Provide both ids and hids per docs example
-    ids: [
-      "city_rose_hotel_suites",
-      "corendon_vitality_hotel_amsterdam",
-      "nova_inn_inuvik"
-    ],
+    // In sandbox prefer hids only; some accounts reject sending ids+hids together
     hids: [6291619, 6291666, 6291690],
     currency: "EUR",
   }), [])

@@ -27,9 +27,13 @@ export async function POST(request) {
       if ((!ids || ids.length === 0) && (!hids || hids.length === 0)) {
         return NextResponse.json({ error: "ids or hids required for hotels mode" }, { status: 400 });
       }
+      // Some accounts require either ids or hids (not both). Prefer hids when provided.
       const payload = { checkin, checkout, residency, language, guests, currency };
-      if (ids) payload.ids = ids;
-      if (hids) payload.hids = hids;
+      if (Array.isArray(hids) && hids.length > 0) {
+        payload.hids = hids;
+      } else if (Array.isArray(ids) && ids.length > 0) {
+        payload.ids = ids;
+      }
       console.log("[API] SERP hotels payload:", payload);
       serpData = await searchSerpHotels(payload);
     } else if (mode === "region") {
