@@ -15,25 +15,27 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { Heart, Bed } from "lucide-react"
 
-export function SearchResults() {
+export function SearchResults({ request }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [items, setItems] = useState([])
   const [sort, setSort] = useState("price_asc")
 
-  // Use the docs' exact SERP by hotel IDs structure for sandbox reliability
-  const requestBody = useMemo(() => ({
-    mode: "region",
-    checkin: "2025-10-01",
-    checkout: "2025-10-07",
-    residency: "GB",
-    language: "en",
-    guests: [
-      { adults: 2, children: [] }
-    ],
-    region_id: 965849721,
-    currency: "EUR",
-  }), [])
+  // Compute effective request: prefer parent-provided request, else default region
+  const requestBody = useMemo(() => {
+    const base = request && typeof request === 'object' ? request : {
+      mode: "region",
+      checkin: "2025-10-01",
+      checkout: "2025-10-07",
+      residency: "GB",
+      language: "en",
+      guests: [{ adults: 2, children: [] }],
+      region_id: 965849721,
+      currency: "EUR",
+    }
+    // merge sort if applicable (only for future use)
+    return { ...base, sort }
+  }, [request, sort])
 
   useEffect(() => {
     let cancelled = false
@@ -103,9 +105,7 @@ export function SearchResults() {
         mb: 3 
       }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: '#002640' }}>
-            Hotels in: Paris, France
-          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#002640' }}>Search Results</Typography>
           <Typography variant="body2" sx={{ color: '#495560' }}>
             {loading ? "Loading..." : `${items.length} results found`}
           </Typography>

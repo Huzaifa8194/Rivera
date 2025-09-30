@@ -4,7 +4,7 @@ import { Button, TextField, Box, Typography, Grid, Container, Paper, List, ListI
 import { Calendar, MapPin, Users } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
-export function SearchHeader() {
+export function SearchHeader({ onRequestChange }) {
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState({ hotels: [], regions: [] })
   const [open, setOpen] = useState(false)
@@ -42,7 +42,18 @@ export function SearchHeader() {
     console.log("[Suggest] Picked region:", region)
     setQuery(region?.name || "")
     setOpen(false)
-    // In a full integration, we would lift state and pass region_id to the results
+    if (region?.region_id || region?.id) {
+      onRequestChange?.({
+        mode: "region",
+        checkin: "2025-10-01",
+        checkout: "2025-10-07",
+        residency: "GB",
+        language: "en",
+        guests: [{ adults: 2, children: [] }],
+        region_id: region?.region_id || region?.id,
+        currency: "EUR",
+      })
+    }
   }
 
   return (
