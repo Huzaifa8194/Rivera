@@ -23,7 +23,7 @@ export function SearchResults() {
 
   // Use the docs' exact SERP by hotel IDs structure for sandbox reliability
   const requestBody = useMemo(() => ({
-    mode: "hotels",
+    mode: "region",
     checkin: "2025-10-22",
     checkout: "2025-10-25",
     residency: "GB",
@@ -31,8 +31,7 @@ export function SearchResults() {
     guests: [
       { adults: 2, children: [] }
     ],
-    // In sandbox prefer hids only; some accounts reject sending ids+hids together
-    hids: [6291619, 6291666, 6291690],
+    region_id: 965849721,
     currency: "EUR",
   }), [])
 
