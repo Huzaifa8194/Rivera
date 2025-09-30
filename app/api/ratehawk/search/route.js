@@ -69,16 +69,25 @@ export async function POST(request) {
       return NextResponse.json({ error: "invalid mode" }, { status: 400 });
     }
 
-    // Normalize a minimal response for UI (handle ETG 'data' wrapper)
-    const items = Array.isArray(serpData)
-      ? serpData
-      : (
-          serpData?.results ||
-          serpData?.hotels ||
-          serpData?.data?.results ||
-          serpData?.data?.hotels ||
-          []
-        );
+    // Normalize a minimal response for UI (handle ETG 'data' wrapper, and possible 'result')
+    const raw = serpData;
+    const candidates = [
+      raw?.results,
+      raw?.hotels,
+      raw?.data?.results,
+      raw?.data?.hotels,
+      raw?.data?.result?.hotels,
+    ];
+    const firstArray = candidates.find((c) => Array.isArray(c)) || [];
+    const items = firstArray;
+
+    console.log("[API] SERP shapes:", {
+      results_len: Array.isArray(raw?.results) ? raw.results.length : 0,
+      hotels_len: Array.isArray(raw?.hotels) ? raw.hotels.length : 0,
+      data_results_len: Array.isArray(raw?.data?.results) ? raw.data.results.length : 0,
+      data_hotels_len: Array.isArray(raw?.data?.hotels) ? raw.data.hotels.length : 0,
+      data_result_hotels_len: Array.isArray(raw?.data?.result?.hotels) ? raw.data.result.hotels.length : 0,
+    });
     const results = items.map((h) => ({
       id: h.id || h.hid || h.hotel_id || h.hotelId,
       name: h.name || h.hotel_name || h.title,
@@ -91,10 +100,10 @@ export async function POST(request) {
 
     const meta = {
       page: serpData?.page || serpData?.data?.page || 1,
-      total: serpData?.total || serpData?.data?.total_hotels || results.length,
+      total: serpData?.total || serpData?.data?.total_hotels || serpData?.data?.result?.total_hotels || results.length,
     };
 
-    console.log(`[API] Returning ${results.length} results`);
+    console.log(`[API] Returning ${results.length} results (total meta: ${meta.total})`);
     return NextResponse.json({ results, meta }, { status: 200 });
   } catch (err) {
     console.error("[API] /api/ratehawk/search error:", err);

@@ -82,7 +82,7 @@ export function SearchResults({ request }) {
 
         if (!res.ok) throw new Error(data?.error || "Failed to fetch search results")
         const nextItems = Array.isArray(data?.results) ? data.results : []
-        console.log("[Hotels] Items count:", nextItems.length)
+        console.log("[Hotels] Items count:", nextItems.length, "meta:", data?.meta)
         if (!cancelled) setItems(nextItems)
       } catch (err) {
         console.error("[Hotels] SERP error:", err)
