@@ -57,6 +57,26 @@ export function SearchHeader({ onRequestChange }) {
     }
   }
 
+  function onPickHotel(hotel) {
+    console.log("[Suggest] Picked hotel:", hotel)
+    setQuery(hotel?.name || "")
+    setOpen(false)
+    if (hotel?.hid || hotel?.id) {
+      const req = {
+        mode: "hotels",
+        checkin: "2025-10-01",
+        checkout: "2025-10-07",
+        residency: "GB",
+        language: "en",
+        guests: [{ adults: 2, children: [] }],
+        currency: "EUR",
+      }
+      if (hotel?.hid) req.hids = [hotel.hid]
+      else if (hotel?.id) req.ids = [hotel.id]
+      onRequestChange?.(req)
+    }
+  }
+
   return (
     <Box sx={{ 
       bgcolor: '#1e293b', 
@@ -93,8 +113,8 @@ export function SearchHeader({ onRequestChange }) {
                       </ListItemButton>
                     ))}
                     {suggestions.hotels.slice(0, 5).map((h) => (
-                      <ListItemButton key={`hot-${h.id || h.hotel_id}`} onClick={() => onPickRegion(h)}>
-                        <ListItemText primary={h.name} secondary={h.city || h.country || h.address} />
+                      <ListItemButton key={`hot-${h.hid || h.id}`} onClick={() => onPickHotel(h)}>
+                        <ListItemText primary={h.name} secondary={`HID: ${h.hid || '-'} • Region: ${h.region_id || '-'}`} />
                       </ListItemButton>
                     ))}
                   </List>
