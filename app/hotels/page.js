@@ -1,3 +1,5 @@
+"use client"
+
 import StickyNavbar from "../components/StickyNavbar"
 import Footer from "../components/Footer"
 import { SearchHeader } from "./component/search-header"
