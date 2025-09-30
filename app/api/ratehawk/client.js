@@ -1,8 +1,8 @@
 // Centralized Ratehawk/ETG API client with verbose logging and basic retry
 // Uses environment variables:
-// - RATEHAWK_BASE_URL (e.g., https://sandbox-api.emergingtravel.com/)
-// - RATEHAWK_API_KEY (token or api key)
-// - RATEHAWK_PARTNER_ID (optional)
+// - RATEHAWK_BASE_URL (e.g., https://api.worldota.net/)
+// - RATEHAWK_API_KEY (password part)
+// - RATEHAWK_KEY_ID or RATEHAWK_PARTNER_ID (username part)
 
 const DEFAULT_TIMEOUT_MS = 20000;
 
@@ -30,14 +30,21 @@ export async function rhFetch(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  // Add multiple auth header variants to maximize sandbox compatibility
-  if (process.env.RATEHAWK_API_KEY) {
-    headers["Authorization"] = headers["Authorization"] || `Bearer ${process.env.RATEHAWK_API_KEY}`;
-    headers["Api-Key"] = headers["Api-Key"] || process.env.RATEHAWK_API_KEY;
-    headers["X-API-Key"] = headers["X-API-Key"] || process.env.RATEHAWK_API_KEY;
-  }
-  if (process.env.RATEHAWK_PARTNER_ID) {
-    headers["X-Partner-Id"] = process.env.RATEHAWK_PARTNER_ID;
+  // HTTP Basic Auth per ETG docs: username = KEY_ID (or PARTNER_ID), password = API_KEY
+  const apiKey = process.env.RATEHAWK_API_KEY;
+  const username = process.env.RATEHAWK_KEY_ID || process.env.RATEHAWK_PARTNER_ID;
+  if (apiKey && username) {
+    const token = Buffer.from(`${username}:${apiKey}`).toString("base64");
+    headers["Authorization"] = `Basic ${token}`;
+    console.log("[Ratehawk] Using HTTP Basic auth (username present)");
+  } else if (apiKey) {
+    // Fallback for older setups (not recommended)
+    headers["Authorization"] = headers["Authorization"] || `Bearer ${apiKey}`;
+    headers["Api-Key"] = headers["Api-Key"] || apiKey;
+    headers["X-API-Key"] = headers["X-API-Key"] || apiKey;
+    console.warn("[Ratehawk] Falling back to Bearer/API-Key headers (no username env set)");
+  } else {
+    console.warn("[Ratehawk] No API key configured in env – requests will fail");
   }
 
   const body = options.body ? (typeof options.body === "string" ? options.body : JSON.stringify(options.body)) : undefined;
