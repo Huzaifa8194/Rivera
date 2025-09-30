@@ -47,14 +47,27 @@ export async function rhFetch(endpoint, options = {}) {
     console.warn("[Ratehawk] No API key configured in env – requests will fail");
   }
 
-  const body = options.body ? (typeof options.body === "string" ? options.body : JSON.stringify(options.body)) : undefined;
+  // Prepare request body and URL for GET vs POST per ETG docs
+  let body = undefined;
+  let finalUrl = url;
+  if (options.method && options.method.toUpperCase() === "GET") {
+    if (options.body) {
+      // For GET, ETG expects ?data=<JSON-string>
+      const dataStr = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+      const u = new URL(url);
+      u.searchParams.set("data", dataStr);
+      finalUrl = u.toString();
+    }
+  } else {
+    body = options.body ? (typeof options.body === "string" ? options.body : JSON.stringify(options.body)) : undefined;
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs || DEFAULT_TIMEOUT_MS);
 
   const attemptFetch = async (attempt) => {
     const startedAt = Date.now();
-    console.log(`[Ratehawk] >>> ${method} ${url} (attempt ${attempt})`);
+    console.log(`[Ratehawk] >>> ${method} ${finalUrl} (attempt ${attempt})`);
     if (body) {
       try {
         console.log("[Ratehawk] Request body:", typeof body === "string" ? JSON.parse(body) : body);
@@ -64,7 +77,7 @@ export async function rhFetch(endpoint, options = {}) {
     }
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch(finalUrl, {
         method,
         headers,
         body,
@@ -83,7 +96,15 @@ export async function rhFetch(endpoint, options = {}) {
         data = await res.text();
       }
 
-      console.log(`[Ratehawk] <<< ${res.status} in ${elapsed}ms from ${url}`);
+      // Log rate limit headers when present
+      const rlSeconds = res.headers.get("X-RateLimit-SecondsNumber");
+      const rlReq = res.headers.get("X-RateLimit-RequestsNumber");
+      const rlRemain = res.headers.get("X-RateLimit-Remaining");
+      const rlReset = res.headers.get("X-RateLimit-Reset");
+      console.log(`[Ratehawk] <<< ${res.status} in ${elapsed}ms from ${finalUrl}`);
+      if (rlReq || rlSeconds) {
+        console.log("[Ratehawk] RateLimit:", { rlSeconds, rlReq, rlRemain, rlReset });
+      }
 
       if (!res.ok) {
         // Retry on 429/5xx
@@ -97,7 +118,7 @@ export async function rhFetch(endpoint, options = {}) {
         const err = new Error(`Ratehawk error ${res.status}`);
         err.status = res.status;
         err.data = data;
-        err.url = url;
+        err.url = finalUrl;
         throw err;
       }
 
@@ -107,7 +128,7 @@ export async function rhFetch(endpoint, options = {}) {
         console.error("[Ratehawk] Request timed out");
         const e = new Error("Ratehawk request timed out");
         e.kind = "timeout";
-        e.url = url;
+        e.url = finalUrl;
         throw e;
       }
       if (attempt < (options.retries ?? 2)) {
@@ -119,7 +140,7 @@ export async function rhFetch(endpoint, options = {}) {
       console.error("[Ratehawk] Request failed:", err);
       const e = new Error(err?.message || "Ratehawk fetch failed");
       e.kind = err?.kind || "network";
-      e.url = url;
+      e.url = finalUrl;
       throw e;
     }
   };
