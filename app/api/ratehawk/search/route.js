@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchMulticomplete, searchSerpRegion, searchSerpHotels } from "../client";
+import { searchSerpRegion, searchSerpHotels, searchSerpGeo } from "../client";
 
 export async function POST(request) {
   try {
@@ -7,61 +7,57 @@ export async function POST(request) {
     console.log("[API] /api/ratehawk/search POST body:", body);
 
     const {
-      query = "Paris",
-      checkIn = "2026-07-01",
-      checkOut = "2026-07-08",
-      rooms = [{ adults: 2 }],
-      sort = "price_asc",
-      page = 1,
-      perPage = 20,
-      regionFallback = true,
+      mode = "hotels", // "hotels" | "region" | "geo"
+      checkin = "2025-10-22",
+      checkout = "2025-10-25",
+      residency = "gb",
+      language = "en",
+      currency = "EUR",
+      guests = [{ adults: 2, children: [] }],
+      ids = undefined, // [String]
+      hids = undefined, // [Int]
+      region_id = undefined, // Int
+      longitude = undefined, // Number
+      latitude = undefined, // Number
+      radius = undefined, // Number (km)
     } = body || {};
 
-    // Step 1: multicomplete to find region/hotel ids from query
-    const suggestPayload = { query, limit: 5 };
-    const suggest = await searchMulticomplete(suggestPayload);
-    console.log("[API] multicomplete result:", suggest);
-
-    // pick first region if available, else try hotels list
-    const regionItem = suggest?.regions?.[0];
-    const hotelItem = suggest?.hotels?.[0];
-
     let serpData = null;
-    if (regionItem && regionFallback) {
-      const regionPayload = {
-        region_id: regionItem?.id || regionItem?.region_id || regionItem?.regionId,
-        checkin: checkIn,
-        checkout: checkOut,
-        rooms,
-        sort,
-        page,
-        per_page: perPage,
-      };
-      console.log("[API] Calling SERP region with:", regionPayload);
-      serpData = await searchSerpRegion(regionPayload);
-    } else if (hotelItem) {
-      const hotelsPayload = {
-        hotel_ids: [hotelItem?.id || hotelItem?.hotel_id || hotelItem?.hotelId].filter(Boolean),
-        checkin: checkIn,
-        checkout: checkOut,
-        rooms,
-        sort,
-        page,
-        per_page: perPage,
-      };
-      console.log("[API] Calling SERP hotels with:", hotelsPayload);
-      serpData = await searchSerpHotels(hotelsPayload);
+    if (mode === "hotels") {
+      if ((!ids || ids.length === 0) && (!hids || hids.length === 0)) {
+        return NextResponse.json({ error: "ids or hids required for hotels mode" }, { status: 400 });
+      }
+      const payload = { checkin, checkout, residency, language, guests, currency };
+      if (ids) payload.ids = ids;
+      if (hids) payload.hids = hids;
+      console.log("[API] SERP hotels payload:", payload);
+      serpData = await searchSerpHotels(payload);
+    } else if (mode === "region") {
+      if (!region_id) {
+        return NextResponse.json({ error: "region_id required for region mode" }, { status: 400 });
+      }
+      const payload = { checkin, checkout, residency, language, guests, currency, region_id };
+      console.log("[API] SERP region payload:", payload);
+      serpData = await searchSerpRegion(payload);
+    } else if (mode === "geo") {
+      if (longitude == null || latitude == null || radius == null) {
+        return NextResponse.json({ error: "longitude, latitude, radius required for geo mode" }, { status: 400 });
+      }
+      const payload = { checkin, checkout, residency, language, guests, currency, longitude, latitude, radius };
+      console.log("[API] SERP geo payload:", payload);
+      serpData = await searchSerpGeo(payload);
     } else {
-      return NextResponse.json({ results: [], meta: { page: 1, total: 0 }, source: "empty" }, { status: 200 });
+      return NextResponse.json({ error: "invalid mode" }, { status: 400 });
     }
 
     // Normalize a minimal response for UI
-    const results = (serpData?.results || serpData?.hotels || []).map((h) => ({
+    const items = Array.isArray(serpData) ? serpData : (serpData?.results || serpData?.hotels || []);
+    const results = items.map((h) => ({
       id: h.id || h.hotel_id || h.hotelId,
       name: h.name || h.hotel_name || h.title,
       rating: h.rating || h.stars || h.score || null,
       price: h.price?.amount || h.min_price || h.price || null,
-      currency: h.price?.currency || serpData?.currency || "EUR",
+      currency: h.price?.currency || serpData?.currency || currency || "EUR",
       image: h.main_photo || h.image || "/home/home-landing.jpg",
       location: h.location?.name || h.address || "",
     }));

@@ -164,4 +164,8 @@ export async function searchSerpHotels(payload) {
   return rhFetch("/api/b2b/v3/search/serp/hotels/", { method: "POST", body: payload });
 }
 
+export async function searchSerpGeo(payload) {
+  return rhFetch("/api/b2b/v3/search/serp/geo/", { method: "POST", body: payload });
+}
+
 

@@ -21,15 +21,25 @@ export function SearchResults() {
   const [items, setItems] = useState([])
   const [sort, setSort] = useState("price_asc")
 
+  // Use the docs' exact SERP by hotel IDs structure for sandbox reliability
   const requestBody = useMemo(() => ({
-    query: "Paris",
-    checkIn: "2026-07-01",
-    checkOut: "2026-07-08",
-    rooms: [{ adults: 2 }],
-    sort,
-    page: 1,
-    perPage: 20,
-  }), [sort])
+    mode: "hotels",
+    checkin: "2025-10-22",
+    checkout: "2025-10-25",
+    residency: "gb",
+    language: "en",
+    guests: [
+      { adults: 2, children: [] }
+    ],
+    // Provide both ids and hids per docs example
+    ids: [
+      "city_rose_hotel_suites",
+      "corendon_vitality_hotel_amsterdam",
+      "nova_inn_inuvik"
+    ],
+    hids: [6291619, 6291666, 6291690],
+    currency: "EUR",
+  }), [])
 
   useEffect(() => {
     let cancelled = false
