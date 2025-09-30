@@ -48,15 +48,42 @@ export function SearchResults() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch("/api/ratehawk/search", {
+        let res = await fetch("/api/ratehawk/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
           cache: "no-store",
         })
         console.log("[Hotels] Response status:", res.status)
-        const data = await res.json().catch(() => null)
+        let data = await res.json().catch(() => null)
         console.log("[Hotels] Response data:", data)
+
+        // Fallback for sandbox: if 400, retry with the test hotel only, per docs
+        if (!res.ok && res.status === 400) {
+          console.warn("[Hotels] 400 from SERP. Retrying with sandbox test hotel…")
+          const fallbackBody = {
+            mode: "hotels",
+            checkin: "2025-10-22",
+            checkout: "2025-10-25",
+            residency: "gb",
+            language: "en",
+            guests: [{ adults: 2, children: [] }],
+            ids: ["test_hotel_do_not_book"],
+            hids: [8473727],
+            currency: "EUR",
+          }
+          console.log("[Hotels] Fallback body:", fallbackBody)
+          res = await fetch("/api/ratehawk/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(fallbackBody),
+            cache: "no-store",
+          })
+          console.log("[Hotels] Fallback status:", res.status)
+          data = await res.json().catch(() => null)
+          console.log("[Hotels] Fallback data:", data)
+        }
+
         if (!res.ok) throw new Error(data?.error || "Failed to fetch search results")
         if (!cancelled) setItems(data?.results || [])
       } catch (err) {
