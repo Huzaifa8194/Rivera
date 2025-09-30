@@ -1,7 +1,50 @@
-import { Button, TextField, Box, Typography, Grid, Container } from "@mui/material"
+"use client"
+
+import { Button, TextField, Box, Typography, Grid, Container, Paper, List, ListItemButton, ListItemText } from "@mui/material"
 import { Calendar, MapPin, Users } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 export function SearchHeader() {
+  const [query, setQuery] = useState("")
+  const [suggestions, setSuggestions] = useState({ hotels: [], regions: [] })
+  const [open, setOpen] = useState(false)
+  const abortRef = useRef(null)
+
+  useEffect(() => {
+    const q = query.trim()
+    if (q.length < 2) {
+      setSuggestions({ hotels: [], regions: [] })
+      setOpen(false)
+      return
+    }
+    ;(async () => {
+      try {
+        if (abortRef.current) abortRef.current.abort()
+        abortRef.current = new AbortController()
+        const res = await fetch("/api/ratehawk/suggest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q, language: "en" }),
+          signal: abortRef.current.signal,
+        })
+        const data = await res.json().catch(() => null)
+        if (!res.ok) throw new Error(data?.error || "suggest failed")
+        setSuggestions({ hotels: data.hotels || [], regions: data.regions || [] })
+        setOpen(true)
+      } catch (e) {
+        if (e.name !== "AbortError") console.warn("suggest error", e)
+      }
+    })()
+  }, [query])
+
+  function onPickRegion(region) {
+    // Emit a custom event for parent pages or store (temporary integration)
+    console.log("[Suggest] Picked region:", region)
+    setQuery(region?.name || "")
+    setOpen(false)
+    // In a full integration, we would lift state and pass region_id to the results
+  }
+
   return (
     <Box sx={{ 
       bgcolor: '#1e293b', 
@@ -22,12 +65,29 @@ export function SearchHeader() {
               <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', width: 16, height: 16 }} />
               <TextField
                 fullWidth
-                value="Paris, France 🇫🇷"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search city or hotel name"
                 InputProps={{
-                  readOnly: true,
                   sx: { pl: 5, bgcolor: 'white', color: 'black', height: 48, '& fieldset': { border: 'none' } }
                 }}
               />
+              {open && (suggestions.hotels.length > 0 || suggestions.regions.length > 0) && (
+                <Paper elevation={4} sx={{ position: 'absolute', left: 0, right: 0, top: 54, zIndex: 10, maxHeight: 280, overflowY: 'auto' }}>
+                  <List dense>
+                    {suggestions.regions.slice(0, 5).map((r) => (
+                      <ListItemButton key={`reg-${r.id || r.region_id}`} onClick={() => onPickRegion(r)}>
+                        <ListItemText primary={r.name} secondary={r.country_name || r.country || r.country_iso2} />
+                      </ListItemButton>
+                    ))}
+                    {suggestions.hotels.slice(0, 5).map((h) => (
+                      <ListItemButton key={`hot-${h.id || h.hotel_id}`} onClick={() => onPickRegion(h)}>
+                        <ListItemText primary={h.name} secondary={h.city || h.country || h.address} />
+                      </ListItemButton>
+                    ))}
+                  </List>
+                </Paper>
+              )}
             </Box>
           </Grid>
 
