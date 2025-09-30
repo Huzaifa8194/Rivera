@@ -12,8 +12,10 @@ export async function POST(request) {
     const payload = { query: String(query).trim(), language };
     console.log("[API] suggest payload:", payload);
     const data = await searchMulticomplete(payload);
-    console.log("[API] suggest result keys:", Object.keys(data || {}));
-    return NextResponse.json({ hotels: data?.hotels || [], regions: data?.regions || [], raw: data }, { status: 200 });
+    const hotels = data?.data?.hotels || data?.hotels || [];
+    const regions = data?.data?.regions || data?.regions || [];
+    console.log("[API] suggest counts:", { hotels: hotels?.length || 0, regions: regions?.length || 0 });
+    return NextResponse.json({ hotels, regions, raw: data }, { status: 200 });
   } catch (err) {
     console.error("[API] /api/ratehawk/suggest error:", err);
     const status = err?.status || 500;

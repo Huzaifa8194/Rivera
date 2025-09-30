@@ -29,6 +29,7 @@ export function SearchHeader({ onRequestChange }) {
         })
         const data = await res.json().catch(() => null)
         if (!res.ok) throw new Error(data?.error || "suggest failed")
+        console.log("[Suggest] Received:", { hotels: (data?.hotels || []).length, regions: (data?.regions || []).length })
         setSuggestions({ hotels: data.hotels || [], regions: data.regions || [] })
         setOpen(true)
       } catch (e) {
