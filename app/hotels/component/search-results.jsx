@@ -201,6 +201,25 @@ export function SearchResults({ request }) {
           }}>Request Dump</Button>
           <Button variant="outlined" size="small" onClick={async () => {
             try {
+              console.log('[Dump] Requesting incremental dump...')
+              const res = await fetch('/api/ratehawk/dump/incremental', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: 'en' }),
+                cache: 'no-store',
+              })
+              const data = await res.json().catch(() => null)
+              console.log('[Dump] Incremental status:', res.status)
+              console.log('[Dump] Incremental data:', data)
+              if (!res.ok) throw new Error(data?.error || 'incremental dump failed')
+              setRawJson((prev) => ({ ...(prev || {}), _incremental_dump: { url: data?.url, last_update: data?.last_update, error: data?.error || null } }))
+            } catch (e) {
+              console.warn('[Dump] Incremental error', e)
+              setRawJson((prev) => ({ ...(prev || {}), _incremental_dump: { error: e?.message || 'Incremental dump request failed' } }))
+            }
+          }}>Request Incremental Dump</Button>
+          <Button variant="outlined" size="small" onClick={async () => {
+            try {
               console.log('[Hotels RAW] Calling /api/ratehawk/search/raw with body:', requestBody)
               const res = await fetch('/api/ratehawk/search/raw', {
                 method: 'POST',
@@ -346,6 +365,30 @@ export function SearchResults({ request }) {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                     <Typography variant="body2" sx={{ color: '#0f172a' }}>Last Update:</Typography>
                     <Typography variant="body2" sx={{ color: '#334155' }}>{rawJson._dump.last_update || '-'}</Typography>
+                  </Box>
+                </>
+              )}
+            </Box>
+          )}
+          {rawJson?._incremental_dump && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: '#fefce8', border: '1px solid #fde68a', borderRadius: 1 }}>
+              <Typography variant="subtitle2" sx={{ color: '#713f12', mb: 1 }}>Incremental Dump</Typography>
+              {rawJson._incremental_dump.error ? (
+                <Typography variant="body2" sx={{ color: '#b91c1c' }}>{rawJson._incremental_dump.error}</Typography>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ color: '#0f172a' }}>URL:</Typography>
+                    <a href={rawJson._incremental_dump.url || '#'} target="_blank" rel="noreferrer" style={{ color: '#ca8a04', wordBreak: 'break-all' }}>
+                      {rawJson._incremental_dump.url || '-'}
+                    </a>
+                    <Button size="small" variant="outlined" onClick={() => {
+                      if (rawJson?._incremental_dump?.url) navigator.clipboard?.writeText(rawJson._incremental_dump.url)
+                    }}>Copy URL</Button>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#0f172a' }}>Last Update:</Typography>
+                    <Typography variant="body2" sx={{ color: '#334155' }}>{rawJson._incremental_dump.last_update || '-'}</Typography>
                   </Box>
                 </>
               )}

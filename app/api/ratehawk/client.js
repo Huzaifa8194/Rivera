@@ -172,4 +172,8 @@ export async function hotelInfoDump(payload) {
   return rhFetch("/api/b2b/v3/hotel/info/dump/", { method: "POST", body: payload });
 }
 
+export async function hotelInfoIncrementalDump(payload) {
+  return rhFetch("/api/b2b/v3/hotel/info/incremental_dump/", { method: "POST", body: payload });
+}
+
 
