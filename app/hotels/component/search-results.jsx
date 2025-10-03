@@ -20,6 +20,7 @@ export function SearchResults({ request }) {
   const [error, setError] = useState(null)
   const [items, setItems] = useState([])
   const [sort, setSort] = useState("price_asc")
+  const [rawJson, setRawJson] = useState(null)
 
   // Compute effective request: prefer parent-provided request, else default region
   const requestBody = useMemo(() => {
@@ -121,6 +122,23 @@ export function SearchResults({ request }) {
               <MenuItem value="popularity">Most Popular</MenuItem>
             </Select>
           </FormControl>
+          <Button variant="outlined" size="small" onClick={async () => {
+            try {
+              console.log('[Hotels RAW] Calling /api/ratehawk/search/raw with body:', requestBody)
+              const res = await fetch('/api/ratehawk/search/raw', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+                cache: 'no-store',
+              })
+              const data = await res.json().catch(() => null)
+              console.log('[Hotels RAW] Response status:', res.status)
+              console.log('[Hotels RAW] Response data:', data)
+              setRawJson(data)
+            } catch (e) {
+              console.warn('[Hotels RAW] error', e)
+            }
+          }}>Debug: Log Raw</Button>
         </Box>
       </Box>
 
@@ -228,6 +246,15 @@ export function SearchResults({ request }) {
           </Card>
         ))}
       </Box>
+
+      {rawJson && (
+        <Box sx={{ mt: 3, p: 2, bgcolor: '#f1f5f9', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ mb: 1, color: '#0f172a' }}>Raw response (truncated):</Typography>
+          <pre style={{ maxHeight: 240, overflow: 'auto', margin: 0 }}>
+{JSON.stringify(rawJson, null, 2)}
+          </pre>
+        </Box>
+      )}
 
       {/* Pagination */}
       <Box sx={{ 
