@@ -45,7 +45,7 @@ export function SearchResults({ request }) {
       setLoading(true)
       setError(null)
       try {
-        let res = await fetch("/api/ratehawk/search", {
+        let res = await fetch("/api/ratehawk/search/raw", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
@@ -54,6 +54,7 @@ export function SearchResults({ request }) {
         console.log("[Hotels] Response status:", res.status)
         let data = await res.json().catch(() => null)
         console.log("[Hotels] Response data:", data)
+        setRawJson(data)
 
         // Fallback for sandbox: if 400, retry with the test hotel only, per docs
         if (!res.ok && res.status === 400) {
@@ -70,7 +71,7 @@ export function SearchResults({ request }) {
             currency: "EUR",
           }
           console.log("[Hotels] Fallback body:", fallbackBody)
-          res = await fetch("/api/ratehawk/search", {
+          res = await fetch("/api/ratehawk/search/raw", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(fallbackBody),
@@ -79,11 +80,67 @@ export function SearchResults({ request }) {
           console.log("[Hotels] Fallback status:", res.status)
           data = await res.json().catch(() => null)
           console.log("[Hotels] Fallback data:", data)
+          setRawJson(data)
         }
 
         if (!res.ok) throw new Error(data?.error || "Failed to fetch search results")
-        const nextItems = Array.isArray(data?.results) ? data.results : []
-        console.log("[Hotels] Items count:", nextItems.length, "meta:", data?.meta)
+        // Map RAW data -> UI items
+        const hotelsArr = (data?.data?.hotels || data?.hotels || [])
+        console.log('[Hotels] RAW hotels count:', hotelsArr.length)
+
+        function pickBestRate(rates) {
+          if (!Array.isArray(rates)) return null
+          let best = null
+          for (const r of rates) {
+            const types = Array.isArray(r?.payment_options?.payment_types) ? r.payment_options.payment_types : []
+            for (const t of types) {
+              const show = t?.show_amount != null ? parseFloat(t.show_amount) : null
+              const amount = t?.amount != null ? parseFloat(t.amount) : null
+              const val = Number.isFinite(show) ? show : (Number.isFinite(amount) ? amount : null)
+              if (val != null) {
+                if (!best || val < best.price) {
+                  best = {
+                    price: val,
+                    currency: t?.show_currency_code || t?.currency_code || 'EUR',
+                    meal: r?.meal_data?.value || r?.meal || null,
+                    hasBreakfast: !!r?.meal_data?.has_breakfast,
+                    freeCancelBefore: r?.cancellation_penalties?.free_cancellation_before || null,
+                    roomName: r?.room_name || r?.room_name_info?.original_rate_name || null,
+                  }
+                }
+              }
+            }
+            if (!best && Array.isArray(r?.daily_prices) && r.daily_prices.length > 0) {
+              const sum = r.daily_prices.reduce((acc, v) => acc + (parseFloat(v) || 0), 0)
+              if (sum > 0) {
+                best = {
+                  price: sum,
+                  currency: data?.currency || requestBody?.currency || 'EUR',
+                  meal: r?.meal_data?.value || r?.meal || null,
+                  hasBreakfast: !!r?.meal_data?.has_breakfast,
+                  freeCancelBefore: r?.cancellation_penalties?.free_cancellation_before || null,
+                  roomName: r?.room_name || r?.room_name_info?.original_rate_name || null,
+                }
+              }
+            }
+          }
+          return best
+        }
+
+        const nextItems = hotelsArr.map((h) => {
+          const best = pickBestRate(h?.rates)
+          return {
+            id: h?.id || h?.hid,
+            name: h?.name || h?.id,
+            price: best?.price ?? null,
+            currency: best?.currency || 'EUR',
+            roomName: best?.roomName || null,
+            hasBreakfast: best?.hasBreakfast || false,
+            freeCancelBefore: best?.freeCancelBefore || null,
+            image: '/home/home-landing.jpg',
+          }
+        })
+        console.log("[Hotels] Mapped items count:", nextItems.length)
         if (!cancelled) setItems(nextItems)
       } catch (err) {
         console.error("[Hotels] SERP error:", err)
