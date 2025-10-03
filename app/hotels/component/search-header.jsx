@@ -2,13 +2,39 @@
 
 import { Button, TextField, Box, Typography, Grid, Container, Paper, List, ListItemButton, ListItemText } from "@mui/material"
 import { Calendar, MapPin, Users } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 export function SearchHeader({ onRequestChange }) {
   const [query, setQuery] = useState("")
   const [suggestions, setSuggestions] = useState({ hotels: [], regions: [] })
   const [open, setOpen] = useState(false)
   const abortRef = useRef(null)
+
+  // Dates: default checkin today, checkout +6 days
+  const todayIso = useMemo(() => {
+    const d = new Date()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${d.getFullYear()}-${mm}-${dd}`
+  }, [])
+  const plusDays = (base, days) => {
+    const d = base ? new Date(base) : new Date()
+    d.setDate(d.getDate() + days)
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${d.getFullYear()}-${mm}-${dd}`
+  }
+  const [checkin, setCheckin] = useState(todayIso)
+  const [checkout, setCheckout] = useState(() => plusDays(undefined, 6))
+
+  useEffect(() => {
+    // Ensure checkout is after checkin
+    if (new Date(checkout) <= new Date(checkin)) {
+      const next = plusDays(checkin, 1)
+      console.log('[SearchHeader] Adjusting checkout to', next)
+      setCheckout(next)
+    }
+  }, [checkin])
 
   useEffect(() => {
     const q = query.trim()
@@ -46,8 +72,8 @@ export function SearchHeader({ onRequestChange }) {
     if (region?.region_id || region?.id) {
       onRequestChange?.({
         mode: "region",
-        checkin: "2025-10-01",
-        checkout: "2025-10-07",
+        checkin,
+        checkout,
         residency: "GB",
         language: "en",
         guests: [{ adults: 2, children: [] }],
@@ -64,8 +90,8 @@ export function SearchHeader({ onRequestChange }) {
     if (hotel?.hid || hotel?.id) {
       const req = {
         mode: "hotels",
-        checkin: "2025-10-01",
-        checkout: "2025-10-07",
+        checkin,
+        checkout,
         residency: "GB",
         language: "en",
         guests: [{ adults: 2, children: [] }],
@@ -130,9 +156,13 @@ export function SearchHeader({ onRequestChange }) {
               <Calendar style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', width: 16, height: 16 }} />
               <TextField
                 fullWidth
-                value="01/07/2026"
+                type="date"
+                value={checkin}
+                onChange={(e) => {
+                  console.log('[SearchHeader] Check-in changed:', e.target.value)
+                  setCheckin(e.target.value)
+                }}
                 InputProps={{
-                  readOnly: true,
                   sx: { pl: 5, bgcolor: 'white', color: 'black', height: 48, '& fieldset': { border: 'none' } }
                 }}
               />
@@ -146,9 +176,13 @@ export function SearchHeader({ onRequestChange }) {
               <Calendar style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', width: 16, height: 16 }} />
               <TextField
                 fullWidth
-                value="08/07/2026"
+                type="date"
+                value={checkout}
+                onChange={(e) => {
+                  console.log('[SearchHeader] Check-out changed:', e.target.value)
+                  setCheckout(e.target.value)
+                }}
                 InputProps={{
-                  readOnly: true,
                   sx: { pl: 5, bgcolor: 'white', color: 'black', height: 48, '& fieldset': { border: 'none' } }
                 }}
               />
