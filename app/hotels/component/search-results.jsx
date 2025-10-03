@@ -181,6 +181,25 @@ export function SearchResults({ request }) {
           </FormControl>
           <Button variant="outlined" size="small" onClick={async () => {
             try {
+              console.log('[Dump] Requesting hotel info dump...')
+              const res = await fetch('/api/ratehawk/dump', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inventory: 'all', language: 'en' }),
+                cache: 'no-store',
+              })
+              const data = await res.json().catch(() => null)
+              console.log('[Dump] Response status:', res.status)
+              console.log('[Dump] Response data:', data)
+              if (!res.ok) throw new Error(data?.error || 'dump failed')
+              alert(`Dump URL: ${data?.url || '-'}\nLast Update: ${data?.last_update || '-'}`)
+            } catch (e) {
+              console.warn('[Dump] error', e)
+              alert(`Dump request failed: ${e?.message}`)
+            }
+          }}>Request Dump</Button>
+          <Button variant="outlined" size="small" onClick={async () => {
+            try {
               console.log('[Hotels RAW] Calling /api/ratehawk/search/raw with body:', requestBody)
               const res = await fetch('/api/ratehawk/search/raw', {
                 method: 'POST',

@@ -168,4 +168,8 @@ export async function searchSerpGeo(payload) {
   return rhFetch("/api/b2b/v3/search/serp/geo/", { method: "POST", body: payload });
 }
 
+export async function hotelInfoDump(payload) {
+  return rhFetch("/api/b2b/v3/hotel/info/dump/", { method: "POST", body: payload });
+}
+
 
