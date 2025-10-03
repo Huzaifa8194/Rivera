@@ -170,7 +170,7 @@ export function SearchResults({ request }) {
             {loading ? "Loading..." : `${items.length} results found`}
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="body2" sx={{ color: '#495560' }}>Sort By:</Typography>
           <FormControl size="small" sx={{ minWidth: 140 }}>
             <Select value={sort} onChange={(e) => setSort(e.target.value)} sx={{ height: 40 }}>
@@ -192,10 +192,11 @@ export function SearchResults({ request }) {
               console.log('[Dump] Response status:', res.status)
               console.log('[Dump] Response data:', data)
               if (!res.ok) throw new Error(data?.error || 'dump failed')
-              alert(`Dump URL: ${data?.url || '-'}\nLast Update: ${data?.last_update || '-'}`)
+              // Render nicely below header
+              setRawJson((prev) => ({ ...(prev || {}), _dump: { url: data?.url, last_update: data?.last_update } }))
             } catch (e) {
               console.warn('[Dump] error', e)
-              alert(`Dump request failed: ${e?.message}`)
+              setRawJson((prev) => ({ ...(prev || {}), _dump: { error: e?.message || 'Dump request failed' } }))
             }
           }}>Request Dump</Button>
           <Button variant="outlined" size="small" onClick={async () => {
@@ -326,6 +327,30 @@ export function SearchResults({ request }) {
       {rawJson && (
         <Box sx={{ mt: 3, p: 2, bgcolor: '#f1f5f9', borderRadius: 1 }}>
           <Typography variant="body2" sx={{ mb: 1, color: '#0f172a' }}>Raw response (truncated):</Typography>
+          {rawJson?._dump && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: 1 }}>
+              <Typography variant="subtitle2" sx={{ color: '#155e75', mb: 1 }}>Hotel Info Dump</Typography>
+              {rawJson._dump.error ? (
+                <Typography variant="body2" sx={{ color: '#b91c1c' }}>{rawJson._dump.error}</Typography>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ color: '#0f172a' }}>URL:</Typography>
+                    <a href={rawJson._dump.url || '#'} target="_blank" rel="noreferrer" style={{ color: '#0369a1', wordBreak: 'break-all' }}>
+                      {rawJson._dump.url || '-'}
+                    </a>
+                    <Button size="small" variant="outlined" onClick={() => {
+                      if (rawJson?._dump?.url) navigator.clipboard?.writeText(rawJson._dump.url)
+                    }}>Copy URL</Button>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#0f172a' }}>Last Update:</Typography>
+                    <Typography variant="body2" sx={{ color: '#334155' }}>{rawJson._dump.last_update || '-'}</Typography>
+                  </Box>
+                </>
+              )}
+            </Box>
+          )}
           <pre style={{ maxHeight: 240, overflow: 'auto', margin: 0 }}>
 {JSON.stringify(rawJson, null, 2)}
           </pre>
