@@ -88,15 +88,54 @@ export async function POST(request) {
       data_hotels_len: Array.isArray(raw?.data?.hotels) ? raw.data.hotels.length : 0,
       data_result_hotels_len: Array.isArray(raw?.data?.result?.hotels) ? raw.data.result.hotels.length : 0,
     });
-    const results = items.map((h) => ({
-      id: h.id || h.hid || h.hotel_id || h.hotelId,
-      name: h.name || h.hotel_name || h.title,
-      rating: h.rating || h.stars || h.score || null,
-      price: h.price?.amount || h.min_price || h.price || null,
-      currency: h.price?.currency || serpData?.currency || currency || "EUR",
-      image: h.main_photo || h.image || "/home/home-landing.jpg",
-      location: h.location?.name || h.address || "",
-    }));
+    function extractPriceAndCurrency(hotel) {
+      // Prefer payment_options.payment_types.show_amount/currency_code over daily_prices
+      let best = { price: null, currency: null };
+      const rates = Array.isArray(hotel?.rates) ? hotel.rates : [];
+      for (const r of rates) {
+        const types = Array.isArray(r?.payment_options?.payment_types)
+          ? r.payment_options.payment_types
+          : [];
+        for (const t of types) {
+          const showAmount = t?.show_amount != null ? parseFloat(t.show_amount) : null;
+          const amount = t?.amount != null ? parseFloat(t.amount) : null;
+          const candidate = (Number.isFinite(showAmount) ? showAmount : (Number.isFinite(amount) ? amount : null));
+          const cur = t?.show_currency_code || t?.currency_code || null;
+          if (candidate != null) {
+            if (best.price == null || candidate < best.price) {
+              best.price = candidate;
+              best.currency = cur || best.currency;
+            }
+          }
+        }
+        // Fallback: compute from daily_prices sum
+        if (best.price == null && Array.isArray(r?.daily_prices) && r.daily_prices.length > 0) {
+          const sum = r.daily_prices.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+          if (sum > 0) {
+            best.price = sum;
+            best.currency = best.currency || (serpData?.currency || currency || "EUR");
+          }
+        }
+      }
+      return best;
+    }
+
+    const results = items.map((h) => {
+      const id = h.id || h.hid || h.hotel_id || h.hotelId;
+      const name = h.name || h.hotel_name || h.title;
+      const { price, currency: cur } = extractPriceAndCurrency(h);
+      const mapped = {
+        id,
+        name,
+        rating: h.rating || h.stars || h.score || null,
+        price: price != null ? Number(price.toFixed(2)) : null,
+        currency: cur || h.price?.currency || serpData?.currency || currency || "EUR",
+        image: h.main_photo || h.image || "/home/home-landing.jpg",
+        location: h.location?.name || h.address || "",
+        regionId: h.region_id || h.regionId || null,
+      };
+      return mapped;
+    });
 
     const meta = {
       page: serpData?.page || serpData?.data?.page || 1,
